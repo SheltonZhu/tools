@@ -1,10 +1,9 @@
-package tests
+package functools
 
 import (
 	"reflect"
 	"strings"
 	"testing"
-	"tools/functools"
 )
 
 func CompareSlice(a, b interface{}) bool {
@@ -37,7 +36,7 @@ func TestMap(t *testing.T) {
 	}
 
 	for _, row := range testData {
-		actual := functools.Map(row[0], row[1].(func(x interface{}) interface{}))
+		actual := Map(row[0], row[1].(func(x interface{}) interface{}))
 		func(expected interface{}) {
 			if !CompareSlice(actual, expected) {
 				t.Errorf("Map(%v) = %v; expected %v", row[0], actual, expected)
@@ -61,7 +60,7 @@ func TestReduce(t *testing.T) {
 	}
 
 	for _, row := range testData {
-		actual := functools.Reduce(row[0], row[1].(func(x, y interface{}) interface{}))
+		actual := Reduce(row[0], row[1].(func(x, y interface{}) interface{}))
 		expected := row[2]
 		if actual != expected {
 			t.Errorf("Map(%v) = %v; expected %v", row[0], actual, expected)
@@ -83,7 +82,7 @@ func TestFilter(t *testing.T) {
 	}
 
 	for _, row := range testData {
-		actual := functools.Filter(row[0], row[1].(func(x interface{}) bool))
+		actual := Filter(row[0], row[1].(func(x interface{}) bool))
 		func(expected interface{}) {
 			if !CompareSlice(actual, expected) {
 				t.Errorf("Map(%v) = %v; expected %v", row[0], actual, expected)

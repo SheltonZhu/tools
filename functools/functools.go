@@ -1,74 +1,85 @@
 package functools
 
-import (
-	"fmt"
-	"reflect"
-)
-// Example:
-//
-//	Map([]int{1, 2, 3}, func(x interface{}) interface{} {
-//		return x.(int) * 2
-//	})
-//
-// Return: [2, 4, 6]
-func Map(iterable interface{}, fn func(x interface{}) interface{}) interface{} {
-	switch reflect.TypeOf(iterable).Kind() {
-	case reflect.Slice:
-		var ret []interface{}
-		iterValue := reflect.ValueOf(iterable)
-		for i := 0; i < iterValue.Len(); i++ {
-			ret = append(ret, fn(iterValue.Index(i).Interface()))
-		}
-
-		return ret
-
-	default:
-		panic(fmt.Sprintf("%v is not iterable.", iterable))
-	}
+type Iterable interface {
+	Len() int
+	Get(i int) Item
 }
 
-// Example:
-//
-//	Reduce([]int{1, 2, 3}, func(x, y interface{}) interface{} {
-//		return x.(int) + y.(int)
-//	})
-//
-// Return: 6
-func Reduce(iterable interface{}, fn func(x, y interface{}) interface{}) interface{} {
-	switch reflect.TypeOf(iterable).Kind() {
-	case reflect.Slice:
-		iterValue := reflect.ValueOf(iterable)
-		var ret = iterValue.Index(0).Interface()
-		for i := 1; i < iterValue.Len(); i++ {
-			ret = fn(ret, iterValue.Index(i).Interface())
-		}
-		return ret
-
-	default:
-		panic(fmt.Sprintf("%v is not iterable.", iterable))
+func Map(iterable Iterable, fn func(x Item) Item) (retVal ItemSlice) {
+	for i := 0; i < iterable.Len(); i++ {
+		retVal = append(retVal, fn(iterable.Get(i)))
 	}
+	return
+}
+func Reduce(iterable Iterable, fn func(x, y Item) Item) Item {
+	var retVal = iterable.Get(0)
+	for i := 1; i < iterable.Len(); i++ {
+		retVal = fn(retVal, iterable.Get(i))
+	}
+	return retVal
+}
+func Filter(iterable Iterable, fn func(x Item) bool) (retVal ItemSlice) {
+	for i := 0; i < iterable.Len(); i++ {
+		if fn(iterable.Get(i)) {
+			retVal = append(retVal, iterable.Get(i))
+		}
+	}
+	return
 }
 
-// Example:
-//
-//	FilterInt([]int{1, 2, 3}, func(x int) bool {
-//		return x%2 == 0
-//	})
-//
-// Return: [2]
-func Filter(iterable interface{}, fn func(x interface{}) bool) interface{} {
-	switch reflect.TypeOf(iterable).Kind() {
-	case reflect.Slice:
-		var ret []interface{}
-		iterValue := reflect.ValueOf(iterable)
-		for i := 0; i < iterValue.Len(); i++ {
-			if fn(iterValue.Index(i).Interface()) {
-				ret = append(ret, iterValue.Index(i).Interface())
-			}
-		}
-		return ret
+type Item interface{}
+type ItemSlice []Item
 
-	default:
-		panic(fmt.Sprintf("%v is not iterable.", iterable))
+func (p ItemSlice) Len() int       { return len(p) }
+func (p ItemSlice) Get(i int) Item { return p[i] }
+
+type IntSlice []int
+
+func (p IntSlice) Len() int       { return len(p) }
+func (p IntSlice) Get(i int) Item { return p[i] }
+
+func (p IntSlice) Map(fn func(item Item) Item) ItemSlice { return Map(p, fn) }
+func (p IntSlice) Reduce(fn func(x, y Item) Item) Item   { return Reduce(p, fn) }
+func (p IntSlice) Filter(fn func(x Item) bool) ItemSlice { return Filter(p, fn) }
+
+type Float64Slice []float64
+
+func (p Float64Slice) Len() int       { return len(p) }
+func (p Float64Slice) Get(i int) Item { return p[i] }
+
+func (p Float64Slice) Map(fn func(item Item) Item) ItemSlice { return Map(p, fn) }
+func (p Float64Slice) Reduce(fn func(x, y Item) Item) Item   { return Reduce(p, fn) }
+func (p Float64Slice) Filter(fn func(x Item) bool) ItemSlice { return Filter(p, fn) }
+
+type StringSlice []string
+
+func (p StringSlice) Len() int       { return len(p) }
+func (p StringSlice) Get(i int) Item { return p[i] }
+
+func (p StringSlice) Map(fn func(item Item) Item) ItemSlice { return Map(p, fn) }
+func (p StringSlice) Reduce(fn func(x, y Item) Item) Item   { return Reduce(p, fn) }
+func (p StringSlice) Filter(fn func(x Item) bool) ItemSlice { return Filter(p, fn) }
+
+func MapInts(a []int, fn func(x Item) Item) ItemSlice         { return Map(IntSlice(a), fn) }
+func MapFloat64s(a []float64, fn func(x Item) Item) ItemSlice { return Map(Float64Slice(a), fn) }
+func MapStrings(a []string, fn func(x Item) Item) ItemSlice   { return Map(StringSlice(a), fn) }
+
+func ReduceInts(a []int, fn func(x, y Item) Item) Item         { return Reduce(IntSlice(a), fn) }
+func ReduceFloat64s(a []float64, fn func(x, y Item) Item) Item { return Reduce(Float64Slice(a), fn) }
+func ReduceStrings(a []string, fn func(x, y Item) Item) Item   { return Reduce(StringSlice(a), fn) }
+
+func FilterInts(a []int, fn func(x Item) bool) ItemSlice         { return Filter(IntSlice(a), fn) }
+func FilterFloat64s(a []float64, fn func(x Item) bool) ItemSlice { return Filter(Float64Slice(a), fn) }
+func FilterStrings(a []string, fn func(x Item) bool) ItemSlice   { return Filter(StringSlice(a), fn) }
+
+func CompareSlice(a, b Iterable) bool {
+	if a.Len() != b.Len() {
+		return false
 	}
+	for i := 0; i < a.Len(); i++ {
+		if a.Get(i) != b.Get(i) {
+			return false
+		}
+	}
+	return true
 }

@@ -22,3 +22,30 @@ func TypeCheck(values ...interface{}) {
 		}
 	}
 }
+
+func RangeInts(start, end, step int) chan int {
+	if start < 0 || end < 0 {
+		panic("'start' must be positive integer.")
+	}
+
+	if step <= 0 {
+		panic("'step' must be positive integer.")
+	}
+
+	ch := make(chan int)
+	go func() {
+		for tmp := start; tmp < end; tmp += step {
+			ch <- tmp
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+func RangeIntsSlice(start, end, step int) (slice []int) {
+	ch := RangeInts(start, end, step)
+	for i := range ch {
+		slice = append(slice, i)
+	}
+	return
+}

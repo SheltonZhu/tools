@@ -1,6 +1,9 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func TypeCheck(values ...interface{}) {
 	for _, value := range values {
@@ -48,4 +51,10 @@ func RangeIntsSlice(start, end, step int) (slice []int) {
 		slice = append(slice, i)
 	}
 	return
+}
+
+func DaysFromYear(year int) int {
+	last := time.Date(year, time.December, 31, 0, 0, 0, 0, time.UTC)
+	first := time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+	return int(last.Sub(first).Hours()/24 + 1)
 }
